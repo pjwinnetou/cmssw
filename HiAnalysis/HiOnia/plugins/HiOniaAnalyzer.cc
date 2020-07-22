@@ -56,6 +56,15 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+// For conv
+#include "DataFormats/PatCandidates/interface/Electron.h"
+#include "DataFormats/PatCandidates/interface/Conversion.h"
+#include "DataFormats/Math/interface/deltaPhi.h"
+#include "DataFormats/EgammaCandidates/interface/Conversion.h"
+#include "DataFormats/EgammaCandidates/interface/ConversionFwd.h"
+#include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
+//
+
 //
 // class declaration
 //
@@ -81,6 +90,8 @@ private:
 
   reco::GenParticleRef findDaughterRef(reco::GenParticleRef GenParticleDaughter, int GenParticlePDG);
   void fillGenInfo();
+  void fillGenPhotonInfo();
+  void fillGenChiInfo();
   bool isAbHadron(int pdgID);
   bool isAMixedbHadron(int pdgID, int momPdgID);
   reco::GenParticleRef findMotherRef(reco::GenParticleRef GenParticleMother, int GenParticlePDG);
@@ -92,7 +103,7 @@ private:
   bool isSoftMuon(const pat::Muon* aMuon);
   bool isTightMuon(const pat::Muon* aMuon);
 
-  void fillRecoTracks();
+  void fillRecoTracks(int lastSign);
 
   pair< unsigned int, const pat::CompositeCandidate* > theBestQQ(int sign);
   double CorrectMass(const reco::Muon& mu1,const reco::Muon& mu2, int mode);
@@ -114,6 +125,10 @@ private:
 
   TLorentzVector lorentzMomentum(const reco::Candidate::LorentzVector& p);
   int muonIDmask(const pat::Muon* muon);
+
+  // For conv
+  pat::CompositeCandidate* makeconvCandidate(const reco::Conversion& conv);
+  reco::Candidate::LorentzVector convertVector(const math::XYZTLorentzVectorF& v);
 
   // ----------member data ---------------------------
   enum StatBins {
@@ -152,6 +167,13 @@ private:
   // TTree
   TTree* myTree;
 
+  // For conv
+  TClonesArray* Reco_conv_4mom;
+  TClonesArray* Reco_conv_vtx;
+  TClonesArray* Reco_conv_pair_momentum;
+  TClonesArray* Reco_conv_refitted_momentum;
+  TClonesArray* Reco_conv_singleleg_momentum;
+
   TClonesArray* Reco_mu_4mom;
   TClonesArray* Reco_QQ_4mom;
   TClonesArray* Reco_QQ_vtx;
@@ -162,9 +184,81 @@ private:
 
   TClonesArray* Gen_mu_4mom;
   TClonesArray* Gen_QQ_4mom;
+  TClonesArray* Gen_QQ_vtx;
   TClonesArray* Gen_QQ_mupl_4mom;
   TClonesArray* Gen_QQ_mumi_4mom;
+  TClonesArray* Gen_trk_4mom;
+  TClonesArray* Gen_trk_vtx;
 
+  TClonesArray* Gen_conv_4mom;
+  TClonesArray* Gen_conv_elpl_4mom;
+  TClonesArray* Gen_conv_elmi_4mom;
+  
+  TClonesArray* Gen_chi_4mom;
+  
+  // For conv
+  static const int Max_conv_size = 10000;
+  
+  int Reco_conv_size;
+  int Reco_conv_validVtx[Max_conv_size];
+  float Reco_conv_chi2[Max_conv_size];
+  float Reco_conv_chi2_probability[Max_conv_size];
+  float Reco_conv_vtx_xErr[Max_conv_size];
+  float Reco_conv_vtx_yErr[Max_conv_size];
+  float Reco_conv_vtx_zErr[Max_conv_size];
+  int Reco_conv_ntracks[Max_conv_size];
+  float Reco_conv_MVALikelihood[Max_conv_size];
+  int Reco_conv_nSharedHits[Max_conv_size];
+  //
+  float Reco_conv_pairinvmass[Max_conv_size];
+  float Reco_conv_paircotthetasep[Max_conv_size];
+  float Reco_conv_zofprimvtxfromtrks[Max_conv_size];
+  float Reco_conv_distofminapproach[Max_conv_size];
+  float Reco_conv_dphitrksatvtx[Max_conv_size];
+  float Reco_conv_dxy[Max_conv_size];
+  float Reco_conv_dz[Max_conv_size];
+  float Reco_conv_lxy[Max_conv_size];
+  float Reco_conv_lz[Max_conv_size];
+  //
+  int Reco_conv_tk1_charge[Max_conv_size];
+  int Reco_conv_tk1_nhit[Max_conv_size];
+  float Reco_conv_tk1_dz[Max_conv_size];
+  float Reco_conv_tk1_dzerr[Max_conv_size];
+  float Reco_conv_tk1_pterr[Max_conv_size];
+  float Reco_conv_tk1_etaerr[Max_conv_size];
+  float Reco_conv_tk1_thetaerr[Max_conv_size];
+  float Reco_conv_tk1_phierr[Max_conv_size];
+  float Reco_conv_tk1_lambdaerr[Max_conv_size];
+  float Reco_conv_tk1_d0[Max_conv_size];
+  float Reco_conv_tk1_pout[Max_conv_size];
+  float Reco_conv_tk1_pin[Max_conv_size];
+  //
+  int Reco_conv_tk2_charge[Max_conv_size];
+  int Reco_conv_tk2_nhit[Max_conv_size];
+  float Reco_conv_tk2_dz[Max_conv_size];
+  float Reco_conv_tk2_dzerr[Max_conv_size];
+  float Reco_conv_tk2_pterr[Max_conv_size];
+  float Reco_conv_tk2_etaerr[Max_conv_size];
+  float Reco_conv_tk2_thetaerr[Max_conv_size];
+  float Reco_conv_tk2_phierr[Max_conv_size];
+  float Reco_conv_tk2_lambdaerr[Max_conv_size];
+  float Reco_conv_tk2_d0[Max_conv_size];
+  float Reco_conv_tk2_pout[Max_conv_size];
+  float Reco_conv_tk2_pin[Max_conv_size];
+  //
+  std::vector<std::vector<unsigned short> > *Reco_conv_nHitsBeforeVtx;
+  std::vector<std::vector<int> > *Reco_conv_quality;
+  //
+  float Reco_conv_pt[Max_conv_size];
+  float Reco_conv_eta[Max_conv_size];
+  float Reco_conv_phi[Max_conv_size];
+  float Reco_conv_et[Max_conv_size];
+  float Reco_conv_energy[Max_conv_size];
+  float Reco_conv_deltaPhi[Max_conv_size];
+  float Reco_conv_deltaEta[Max_conv_size];
+  float Reco_conv_deltaR[Max_conv_size];
+  
+  //
   static const int Max_QQ_size = 10000;
   static const int Max_mu_size = 10000;
   static const int Max_trk_size = 10000;
@@ -178,6 +272,17 @@ private:
   int Gen_mu_size; // number of generated muons
   int Gen_mu_charge[Max_mu_size]; // muon charge
   int Gen_mu_type[Max_mu_size]; // muon type: prompt, non-prompt, unmatched
+
+  int Gen_QQ_Ntrk[Max_QQ_size];
+  int Gen_trk_size;           // Number of generated tracks
+  int Gen_trk_charge[Max_trk_size];  // Vector of charge of tracks
+  bool Gen_isgoodTrk[Max_trk_size];  // Vector of charge of tracks
+  bool Gen_isMuTrk[Max_trk_size];  // Vector of charge of tracks
+
+  int Gen_conv_size;
+  int Gen_chi_size;
+
+
 
   int Reco_QQ_size;       // Number of reconstructed Onia 
   int Reco_QQ_type[Max_QQ_size];   // Onia category: GG, GT, TT
@@ -285,6 +390,8 @@ private:
 
   int Reco_trk_size;           // Number of reconstructed tracks
   int Reco_trk_charge[Max_trk_size];  // Vector of charge of tracks
+  bool Reco_isgoodTrk[Max_trk_size];  // Vector of charge of tracks
+  bool Reco_isMuTrk[Max_trk_size];  // Vector of charge of tracks
   float Reco_trk_dxyError[Max_trk_size];
   float Reco_trk_dzError[Max_trk_size];
 
@@ -329,6 +436,7 @@ private:
   float rpSin[50];
 
   // handles
+  edm::Handle<reco::ConversionCollection> collConversion; // For conv
   edm::Handle<pat::CompositeCandidateCollection> collJpsi;
   edm::Handle<pat::MuonCollection> collMuon;
   edm::Handle<pat::MuonCollection> collMuonNoTrig;
@@ -339,6 +447,7 @@ private:
   edm::Handle<edm::TriggerResults> collTriggerResults;
 
   // data members
+  edm::EDGetTokenT<reco::ConversionCollection>        _recoConversionToken; // For conv
   edm::EDGetTokenT<pat::MuonCollection>               _patMuonToken;
   edm::EDGetTokenT<pat::MuonCollection>               _patMuonNoTrigToken;
   edm::EDGetTokenT<pat::CompositeCandidateCollection> _patJpsiToken;
@@ -451,6 +560,7 @@ private:
 // constructors and destructor
 //
 HiOniaAnalyzer::HiOniaAnalyzer(const edm::ParameterSet& iConfig):
+  _recoConversionToken(consumes<reco::ConversionCollection>(iConfig.getParameter<edm::InputTag>("srcConversion"))),
   _patMuonToken(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("srcMuon"))),
   _patMuonNoTrigToken(consumes<pat::MuonCollection>(iConfig.getParameter<edm::InputTag>("srcMuonNoTrig"))),
   _patJpsiToken(consumes<pat::CompositeCandidateCollection>(iConfig.getParameter<edm::InputTag>("src"))),
@@ -723,6 +833,7 @@ HiOniaAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     }
   }
 
+  iEvent.getByToken(_recoConversionToken,collConversion); // For conv
   iEvent.getByToken(_patJpsiToken,collJpsi); 
   iEvent.getByToken(_patMuonToken,collMuon);
   iEvent.getByToken(_patMuonNoTrigToken,collMuonNoTrig);
@@ -730,8 +841,10 @@ HiOniaAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   if (_isMC) {
     iEvent.getByToken(_genParticleToken,collGenParticles);
     this->fillGenInfo();
+    this->fillGenPhotonInfo();
+    this->fillGenChiInfo();
   }
-  
+
   // APPLY CUTS
   int lastSign = 0;
   this->makeCuts(0);
@@ -741,20 +854,139 @@ HiOniaAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     lastSign = 2;
   }
 
+  // For conv
+  Reco_conv_4mom->Clear();
+  Reco_conv_vtx->Clear();
+  Reco_conv_pair_momentum->Clear();
+  Reco_conv_refitted_momentum->Clear();
+  Reco_conv_singleleg_momentum->Clear();
+  Reco_conv_nHitsBeforeVtx->clear();
+  Reco_conv_quality->clear();
+  Reco_conv_size = 0;
+  if(collConversion.isValid()) {
+    for(reco::ConversionCollection::const_iterator it=collConversion->begin(); it!=collConversion->end(); ++it) {
+      if (Reco_conv_size >= Max_conv_size) {
+        std::cout << "Too many conversions: " << collConversion->size() << std::endl;
+        std::cout << "Maximum allowed: " << Max_conv_size << std::endl;
+        break;
+      }
+      reco::Conversion localConv = reco::Conversion(*it);
+      if ( !localConv.conversionVertex().isValid() ) continue;
+      new ((*Reco_conv_4mom)[Reco_conv_size]) TLorentzVector();
+      new ((*Reco_conv_vtx)[Reco_conv_size]) TVector3();
+      new ((*Reco_conv_pair_momentum)[Reco_conv_size]) TVector3();
+      new ((*Reco_conv_refitted_momentum)[Reco_conv_size]) TVector3();
+      new ((*Reco_conv_singleleg_momentum)[Reco_conv_size]) TVector3();
+      ((TLorentzVector*)Reco_conv_4mom->At(Reco_conv_size))->SetXYZT(localConv.refittedPair4Momentum().px(), localConv.refittedPair4Momentum().py(), localConv.refittedPair4Momentum().pz(), localConv.refittedPair4Momentum().energy());
+
+      Reco_conv_validVtx[Reco_conv_size]=localConv.conversionVertex().isValid();
+      reco::Vertex conv_vtx = localConv.conversionVertex();
+      ((TVector3 *)Reco_conv_vtx->At(Reco_conv_size))->SetXYZ(conv_vtx.x(), conv_vtx.y(), conv_vtx.z());
+      ((TVector3 *)Reco_conv_pair_momentum->At(Reco_conv_size))->SetXYZ(localConv.pairMomentum().x(), localConv.pairMomentum().y(), localConv.pairMomentum().z());
+      ((TVector3 *)Reco_conv_refitted_momentum->At(Reco_conv_size))->SetXYZ(localConv.refittedPairMomentum().x(), localConv.refittedPairMomentum().y(), localConv.refittedPairMomentum().z());
+
+      Reco_conv_chi2[Reco_conv_size]=conv_vtx.chi2();
+      Reco_conv_chi2_probability[Reco_conv_size]=ChiSquaredProbability(conv_vtx.chi2(), conv_vtx.ndof());
+      Reco_conv_vtx_xErr[Reco_conv_size]= conv_vtx.xError();
+      Reco_conv_vtx_yErr[Reco_conv_size]= conv_vtx.yError();
+      Reco_conv_vtx_zErr[Reco_conv_size]= conv_vtx.zError();
+      Reco_conv_ntracks[Reco_conv_size]=localConv.nTracks();
+      Reco_conv_MVALikelihood[Reco_conv_size]=localConv.MVAout();
+
+      if(localConv.nTracks()) {
+        const std::vector<edm::RefToBase<reco::Track> > conv_tracks = localConv.tracks();
+        for (unsigned int i=0; i<conv_tracks.size(); i++) {
+          if(i==0) {
+            Reco_conv_tk1_dz[Reco_conv_size]=conv_tracks[i]->dz();
+            Reco_conv_tk1_dzerr[Reco_conv_size]=conv_tracks[i]->dzError();
+            Reco_conv_tk1_nhit[Reco_conv_size]=conv_tracks[i]->numberOfValidHits();
+            Reco_conv_tk1_charge[Reco_conv_size]=conv_tracks[i]->charge();
+            Reco_conv_tk1_pterr[Reco_conv_size]=conv_tracks[i]->ptError();
+            Reco_conv_tk1_etaerr[Reco_conv_size]=conv_tracks[i]->etaError();
+            Reco_conv_tk1_thetaerr[Reco_conv_size]=conv_tracks[i]->thetaError();
+            Reco_conv_tk1_phierr[Reco_conv_size]=conv_tracks[i]->phiError();
+            Reco_conv_tk1_lambdaerr[Reco_conv_size]=conv_tracks[i]->lambdaError();
+          }
+          else if(i==1) {
+            Reco_conv_tk2_dz[Reco_conv_size]=conv_tracks[i]->dz();
+            Reco_conv_tk2_dzerr[Reco_conv_size]=conv_tracks[i]->dzError();
+            Reco_conv_tk2_nhit[Reco_conv_size]=conv_tracks[i]->numberOfValidHits();
+            Reco_conv_tk2_charge[Reco_conv_size]=conv_tracks[i]->charge();
+            Reco_conv_tk2_pterr[Reco_conv_size]=conv_tracks[i]->ptError();
+            Reco_conv_tk2_etaerr[Reco_conv_size]=conv_tracks[i]->etaError();
+            Reco_conv_tk2_thetaerr[Reco_conv_size]=conv_tracks[i]->thetaError();
+            Reco_conv_tk2_phierr[Reco_conv_size]=conv_tracks[i]->phiError();
+            Reco_conv_tk2_lambdaerr[Reco_conv_size]=conv_tracks[i]->lambdaError();
+          }
+        }
+      }
+      Reco_conv_pairinvmass[Reco_conv_size]=localConv.pairInvariantMass();
+      Reco_conv_paircotthetasep[Reco_conv_size]=localConv.pairCotThetaSeparation();
+      Reco_conv_zofprimvtxfromtrks[Reco_conv_size]=localConv.zOfPrimaryVertexFromTracks();
+      Reco_conv_distofminapproach[Reco_conv_size]=localConv.distOfMinimumApproach();
+      Reco_conv_dphitrksatvtx[Reco_conv_size]=localConv.dPhiTracksAtVtx();
+      Reco_conv_dxy[Reco_conv_size]=localConv.dxy();
+      Reco_conv_dz[Reco_conv_size]=localConv.dz();
+      Reco_conv_lxy[Reco_conv_size]=localConv.lxy();
+      Reco_conv_lz[Reco_conv_size]=localConv.lz();
+      //
+      std::vector<unsigned short> tmp;
+      for (unsigned int i=0; i<localConv.nHitsBeforeVtx().size(); ++i) {
+        tmp.push_back(static_cast<unsigned short>(localConv.nHitsBeforeVtx()[i]));
+      }
+      Reco_conv_nHitsBeforeVtx->push_back(tmp);
+      Reco_conv_nSharedHits[Reco_conv_size] = localConv.nSharedHits();
+
+      std::vector<int> conv_quality_tmp;
+      if (localConv.quality(reco::Conversion::arbitratedMerged)) conv_quality_tmp.push_back(1);
+      if (localConv.quality(reco::Conversion::generalTracksOnly)) conv_quality_tmp.push_back(2);
+      if (localConv.quality(reco::Conversion::arbitratedEcalSeeded)) conv_quality_tmp.push_back(3);
+      Reco_conv_quality->push_back(conv_quality_tmp);
+
+      if(localConv.tracks().size() > 0) {
+        Reco_conv_tk1_d0[Reco_conv_size]=localConv.tracksSigned_d0()[0];
+        Reco_conv_tk1_pout[Reco_conv_size]=sqrt(localConv.tracksPout()[0].Mag2());
+        Reco_conv_tk1_pin[Reco_conv_size]=sqrt(localConv.tracksPin()[0].Mag2());
+      }
+
+      if(localConv.tracks().size() > 1) {
+        Reco_conv_tk2_d0[Reco_conv_size]=localConv.tracksSigned_d0()[1];
+        Reco_conv_tk2_pout[Reco_conv_size]=sqrt(localConv.tracksPout()[1].Mag2());
+        Reco_conv_tk2_pin[Reco_conv_size]=sqrt(localConv.tracksPin()[1].Mag2());
+      }
+      //
+      pat::CompositeCandidate *convCand = makeconvCandidate(*it);
+      pat::Electron *electron1 = dynamic_cast<pat::Electron*>(convCand->daughter("electron1"));
+      pat::Electron *electron2 = dynamic_cast<pat::Electron*>(convCand->daughter("electron2"));
+      //
+      Reco_conv_pt[Reco_conv_size]       = convCand->pt();
+      Reco_conv_eta[Reco_conv_size]      = convCand->eta();
+      Reco_conv_phi[Reco_conv_size]      = convCand->phi();
+      Reco_conv_et[Reco_conv_size]       = convCand->et();
+      Reco_conv_energy[Reco_conv_size]   = convCand->energy();
+      Reco_conv_deltaEta[Reco_conv_size] = electron1->eta() - electron2->eta();
+      Reco_conv_deltaPhi[Reco_conv_size] = deltaPhi(electron1->phi(), electron2->phi());
+      Reco_conv_deltaR[Reco_conv_size]   = deltaR(electron1->eta(), electron1->phi(), electron2->eta(), electron2->phi());
+
+      Reco_conv_size++;
+    }
+  }
+  //
+
   if (_fillSingleMuons)
     this->fillRecoMuons(theCentralityBin);
 
   if (_useGeTracks){
     iEvent.getByToken(_recoTracksToken,collTracks);
     if (_fillRecoTracks)
-      this->fillRecoTracks();
+      this->fillRecoTracks(lastSign);
   }
 
   this->fillRecoHistos(lastSign);
 
   if (_fillTree)
     myTree->Fill();
-
+  
   return;
 }
 
@@ -1484,7 +1716,10 @@ HiOniaAnalyzer::InitEvent()
   Reco_trk_size = 0;
 
   Gen_QQ_size = 0;
+  Gen_conv_size = 0;
+  Gen_chi_size = 0;
   Gen_mu_size = 0;
+  Gen_trk_size = 0;
 
   Reco_QQ_4mom->Clear();
   Reco_QQ_vtx->Clear();
@@ -1495,13 +1730,22 @@ HiOniaAnalyzer::InitEvent()
   if (_useGeTracks && _fillRecoTracks) {
     Reco_trk_4mom->Clear();
     Reco_trk_vtx->Clear();
-  }
+}
 
   if (_isMC) {
     Gen_QQ_4mom->Clear();
     Gen_QQ_mupl_4mom->Clear();
     Gen_QQ_mumi_4mom->Clear();
     Gen_mu_4mom->Clear();
+    Gen_trk_4mom->Clear();
+    Gen_trk_vtx->Clear();
+    Gen_QQ_vtx->Clear();
+
+    Gen_conv_4mom->Clear();
+    Gen_conv_elpl_4mom->Clear();
+    Gen_conv_elmi_4mom->Clear();
+    
+    Gen_chi_4mom->Clear();
   }
 
   for(std::map< std::string, int >::iterator clearIt= mapTriggerNameToIntFired_.begin(); clearIt != mapTriggerNameToIntFired_.end(); clearIt++){
@@ -1557,6 +1801,12 @@ HiOniaAnalyzer::fillGenInfo()
     return;
   }
   
+  if (Gen_trk_size >= Max_trk_size) {
+    std::cout << "Too many tracks: " << Gen_trk_size << std::endl;
+    std::cout << "Maximum allowed: " << Max_trk_size << std::endl;
+    return;
+  }
+
   if (collGenParticles.isValid()) {
     for(std::vector<reco::GenParticle>::const_iterator it=collGenParticles->begin();
         it!=collGenParticles->end();++it) {
@@ -1608,24 +1858,111 @@ HiOniaAnalyzer::fillGenInfo()
         Gen_mu_size++;
       }
 
+		if(abs(gen->pdgId()) != 13 && gen->status() == 1)
+		{
+			TLorentzVector vTrk = lorentzMomentum(gen->p4());
+			new((*Gen_trk_4mom)[Gen_trk_size]) TLorentzVector(vTrk);
+
+			Gen_trk_size++;
+		}
+
     }
   }
-  
+
   return;
 }
 
 void
-HiOniaAnalyzer::fillRecoTracks()
+HiOniaAnalyzer::fillGenPhotonInfo()
+{
+  if (Gen_conv_size >= Max_conv_size) {
+    std::cout << "Too many converted photons: " << Gen_conv_size << std::endl;
+    std::cout << "Maximum allowed: " << Max_conv_size << std::endl;
+    return;
+  }
+
+  if (collGenParticles.isValid()) {
+    for(std::vector<reco::GenParticle>::const_iterator it=collGenParticles->begin();
+        it!=collGenParticles->end();++it) {
+      const reco::GenParticle* gen = &(*it);
+      
+      if (abs(gen->pdgId()) == 22 && (gen->status() == 2 || (abs(gen->pdgId())==23 && gen->status() == 62))  &&
+          gen->numberOfDaughters() >= 2) {
+
+        reco::GenParticleRef genEle1 = findDaughterRef(gen->daughterRef(0), gen->pdgId());
+        reco::GenParticleRef genEle2 = findDaughterRef(gen->daughterRef(1), gen->pdgId());
+
+        if ( abs(genEle1->pdgId()) == 11 &&
+             abs(genEle2->pdgId()) == 11 &&
+             ( genEle1->status() == 1 ) &&
+             ( genEle2->status() == 1 )
+             ) {
+          
+ //         Gen_QQ_type[Gen_QQ_size] = _isPromptMC ? 0 : 1; // prompt: 0, non-prompt: 1
+          
+          TLorentzVector vConv = lorentzMomentum(gen->p4());
+          new((*Gen_conv_4mom)[Gen_conv_size])TLorentzVector(vConv);
+
+          TLorentzVector vEle1 = lorentzMomentum(genEle1->p4());
+          TLorentzVector vEle2 = lorentzMomentum(genEle2->p4());
+            
+          if (genEle1->charge() > genEle2->charge()) {
+            new((*Gen_conv_elpl_4mom)[Gen_conv_size])TLorentzVector(vEle1);
+            new((*Gen_conv_elmi_4mom)[Gen_conv_size])TLorentzVector(vEle2);
+          }
+          else {
+            new((*Gen_conv_elpl_4mom)[Gen_conv_size])TLorentzVector(vEle2);
+            new((*Gen_conv_elmi_4mom)[Gen_conv_size])TLorentzVector(vEle1);
+          }
+          Gen_conv_size++;
+        }
+      }
+
+    }
+  }
+
+  return;
+}
+
+void
+HiOniaAnalyzer::fillGenChiInfo()
+{
+  if (Gen_chi_size >= Max_conv_size) {
+    std::cout << "Too many converted photons: " << Gen_chi_size << std::endl;
+    std::cout << "Maximum allowed: " << Max_conv_size << std::endl;
+    return;
+  }
+
+  if (collGenParticles.isValid()) {
+    for(std::vector<reco::GenParticle>::const_iterator it=collGenParticles->begin();
+        it!=collGenParticles->end();++it) {
+      const reco::GenParticle* gen = &(*it);
+
+      if ((abs(gen->pdgId()) == 20553 || abs(gen->pdgId()) == 555)  && (gen->status() == 2 || (abs(gen->pdgId())==23 && gen->status() == 62))  &&
+          gen->numberOfDaughters() >= 2) {
+
+        TLorentzVector vChi = lorentzMomentum(gen->p4());
+        new((*Gen_chi_4mom)[Gen_chi_size])TLorentzVector(vChi);
+        Gen_chi_size++;
+      }
+    }
+
+  }
+  return;
+}
+
+void
+HiOniaAnalyzer::fillRecoTracks(int lastSign)
 {
   if (collTracks.isValid()) {
     for(std::vector<reco::Track>::const_iterator it=collTracks->begin();
         it!=collTracks->end(); ++it) {
       const reco::Track* track = &(*it);        
 
-      // double dz = track->dz(RefVtx);
-      // double dzsigma = sqrt(track->dzError()*track->dzError()+RefVtx_zError*RefVtx_zError);    
-      // double dxy = track->dxy(RefVtx);
-      // double dxysigma = sqrt(track->dxyError()*track->dxyError() + RefVtx_xError*RefVtx_yError);
+      double dz = track->dz(RefVtx);
+      double dzsigma = sqrt(track->dzError()*track->dzError()+RefVtx_zError*RefVtx_zError);    
+      double dxy = track->dxy(RefVtx);
+      double dxysigma = sqrt(track->dxyError()*track->dxyError() + RefVtx_xError*RefVtx_yError);
       
       if (track->qualityByName("highPurity") &&
           track->pt()>0.2 && fabs(track->eta())<2.4 &&
@@ -1635,6 +1972,50 @@ HiOniaAnalyzer::fillRecoTracks()
           std::cout << "Maximum allowed: " << Max_trk_size << std::endl;
           break;
         }
+			if(fabs(dz/dzsigma)<3.0 && fabs(dxy/dxysigma)<3.0) Reco_isgoodTrk[Reco_trk_size] = true;
+			else Reco_isgoodTrk[Reco_trk_size] = false;
+
+			Reco_isMuTrk[Reco_trk_size] = false;
+
+			for(int iSign = 0; iSign <= lastSign; ++iSign)
+			{
+				for( unsigned int count = 0; count < _thePassedCands[iSign].size(); count++)
+				{
+//Get muon{{{
+					const pat::CompositeCandidate* aJpsiCand = _thePassedCands[iSign].at(count);
+					const pat::Muon* muon1 = dynamic_cast<const pat::Muon*>(aJpsiCand->daughter("muon1"));
+					const pat::Muon* muon2 = dynamic_cast<const pat::Muon*>(aJpsiCand->daughter("muon2"));
+					reco::TrackRef tTrack_mupl;
+					reco::TrackRef tTrack_mumi;
+					if(muon1->charge() > muon2->charge())
+					{
+						tTrack_mupl = muon1->innerTrack();
+						tTrack_mumi = muon2->innerTrack();
+					}
+					else
+					{
+						tTrack_mupl = muon2->innerTrack();
+						tTrack_mumi = muon1->innerTrack();
+					}
+//}}}
+
+//check if the muon is track{{{
+					if(tTrack_mupl->charge()==track->charge())
+					{
+						double Reco_QQ_mupl_NtrkDeltaR = deltaR(tTrack_mupl->eta(), tTrack_mupl->phi(), track->eta(), track->phi());
+						double Reco_QQ_mupl_RelDelPt = abs(1.0 - tTrack_mupl->pt()/track->pt());
+						if ( Reco_QQ_mupl_NtrkDeltaR<0.001 && Reco_QQ_mupl_RelDelPt<0.001 ) Reco_isMuTrk[Reco_trk_size] = true;
+					}
+					else
+					{
+						double Reco_QQ_mumi_NtrkDeltaR = deltaR(tTrack_mumi->eta(), tTrack_mumi->phi(), track->eta(), track->phi());
+						double Reco_QQ_mumi_RelDelPt = abs(1.0 - tTrack_mumi->pt()/track->pt());
+						if ( Reco_QQ_mumi_NtrkDeltaR<0.001 && Reco_QQ_mumi_RelDelPt<0.001 ) Reco_isMuTrk[Reco_trk_size] = true;
+					}
+//}}}
+				}
+			}
+
         
         Reco_trk_charge[Reco_trk_size] = track->charge();
          
@@ -1777,6 +2158,12 @@ HiOniaAnalyzer::fillRecoMuons(int iCent)
 void
 HiOniaAnalyzer::InitTree()
 {
+  Reco_conv_4mom = new TClonesArray("TLorentzVector", 100);
+  Reco_conv_vtx = new TClonesArray("TVector3", 100);
+  Reco_conv_pair_momentum = new TClonesArray("TVector3", 100);
+  Reco_conv_refitted_momentum = new TClonesArray("TVector3", 100);
+  Reco_conv_singleleg_momentum = new TClonesArray("TVector3", 100);
+
 
   Reco_mu_4mom = new TClonesArray("TLorentzVector", 100);
   Reco_QQ_4mom = new TClonesArray("TLorentzVector",10);
@@ -1795,11 +2182,19 @@ HiOniaAnalyzer::InitTree()
     Gen_QQ_4mom = new TClonesArray("TLorentzVector", 2);
     Gen_QQ_mupl_4mom = new TClonesArray("TLorentzVector", 2);
     Gen_QQ_mumi_4mom = new TClonesArray("TLorentzVector", 2);
+    Gen_trk_4mom = new TClonesArray("TLorentzVector", 100);
+    Gen_trk_vtx = new TClonesArray("TVector3", 100);
+    Gen_QQ_vtx = new TClonesArray("TVector3", 10);
+    Gen_conv_4mom = new TClonesArray("TLorentzVector", 10);
+    Gen_conv_elpl_4mom = new TClonesArray("TLorentzVector", 10);
+    Gen_conv_elmi_4mom = new TClonesArray("TLorentzVector", 10);
+    Gen_chi_4mom = new TClonesArray("TLorentzVector", 10);
   }
 
   //myTree = new TTree("myTree","My TTree of dimuons");
   myTree = fs->make<TTree>("myTree","My TTree of dimuons");
   
+  // For conv
   myTree->Branch("eventNb", &eventNb,   "eventNb/i");
   myTree->Branch("runNb",   &runNb,     "runNb/i");
   myTree->Branch("LS",      &lumiSection, "LS/i"); 
@@ -1835,6 +2230,73 @@ HiOniaAnalyzer::InitTree()
     myTree->Branch("rpCos", &rpCos, "rpCos[nEP]/F");
   }
 
+  //
+  myTree->Branch("Reco_conv_size", &Reco_conv_size, "Reco_conv_size/I" );
+
+  myTree->Branch("Reco_conv_4mom", "TClonesArray", &Reco_conv_4mom, 32000, 0);
+  myTree->Branch("Reco_conv_validVtx", Reco_conv_validVtx, "Reco_conv_validVtx[Reco_conv_size]/I");
+  myTree->Branch("Reco_conv_chi2", Reco_conv_chi2, "Reco_conv_chi2[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_chi2_probability", Reco_conv_chi2_probability, "Reco_conv_chi2_probability[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_vtx_xErr", Reco_conv_vtx_xErr, "Reco_conv_vtx_xErr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_vtx_yErr", Reco_conv_vtx_yErr, "Reco_conv_vtx_yErr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_vtx_zErr", Reco_conv_vtx_zErr, "Reco_conv_vtx_zErr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_ntracks", Reco_conv_ntracks, "Reco_conv_ntracks[Reco_conv_size]/I");
+  myTree->Branch("Reco_conv_MVALikelihood", Reco_conv_MVALikelihood, "Reco_conv_MVALikelihood[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_quality","std::vector<std::vector<int> >",&Reco_conv_quality);
+  //
+  myTree->Branch("Reco_conv_pairinvmass", Reco_conv_pairinvmass, "Reco_conv_pairinvmass[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_paircotthetasep", Reco_conv_paircotthetasep, "Reco_conv_paircotthetasep[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_zofprimvtxfromtrks", Reco_conv_zofprimvtxfromtrks, "Reco_conv_zofprimvtxfromtrks[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_distofminapproach", Reco_conv_distofminapproach, "Reco_conv_distofminapproach[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_dphitrksatvtx", Reco_conv_dphitrksatvtx, "Reco_conv_dphitrksatvtx[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_dxy", Reco_conv_dxy, "Reco_conv_dxy[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_dz", Reco_conv_dz, "Reco_conv_dz[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_lxy", Reco_conv_lxy, "Reco_conv_lxy[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_lz", Reco_conv_lz, "Reco_conv_lz[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_nHitsBeforeVtx", "std::vector<std::vector<unsigned short> >", &Reco_conv_nHitsBeforeVtx);
+  myTree->Branch("Reco_conv_nSharedHits",Reco_conv_nSharedHits,"Reco_conv_nSharedHits[Reco_conv_size]/I");
+  //
+  myTree->Branch("Reco_conv_tk1_charge", Reco_conv_tk1_charge, "Reco_conv_tk1_charge[Reco_conv_size]/I");
+  myTree->Branch("Reco_conv_tk1_nhit", Reco_conv_tk1_nhit, "Reco_conv_tk1_nhit[Reco_conv_size]/I");
+  myTree->Branch("Reco_conv_tk1_dz", Reco_conv_tk1_dz, "Reco_conv_tk1_dz[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_dzerr", Reco_conv_tk1_dzerr, "Reco_conv_tk1_dzerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_pterr", Reco_conv_tk1_pterr, "Reco_conv_tk1_pterr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_etaerr", Reco_conv_tk1_etaerr, "Reco_conv_tk1_etaerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_thetaerr", Reco_conv_tk1_thetaerr, "Reco_conv_tk1_thetaerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_phierr", Reco_conv_tk1_phierr, "Reco_conv_tk1_phierr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_lambdaerr", Reco_conv_tk1_lambdaerr, "Reco_conv_tk1_lambdaerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_d0", Reco_conv_tk1_d0, "Reco_conv_tk1_d0[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_pout", Reco_conv_tk1_pout, "Reco_conv_tk1_pout[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk1_pin", Reco_conv_tk1_pin, "Reco_conv_tk1_pin[Reco_conv_size]/F");
+  //
+  myTree->Branch("Reco_conv_tk2_charge", Reco_conv_tk2_charge, "Reco_conv_tk2_charge[Reco_conv_size]/I");
+  myTree->Branch("Reco_conv_tk2_nhit", Reco_conv_tk2_nhit, "Reco_conv_tk2_nhit[Reco_conv_size]/I");
+  myTree->Branch("Reco_conv_tk2_dz", Reco_conv_tk2_dz, "Reco_conv_tk2_dz[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_dzerr", Reco_conv_tk2_dzerr, "Reco_conv_tk2_dzerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_pterr", Reco_conv_tk2_pterr, "Reco_conv_tk2_pterr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_etaerr", Reco_conv_tk2_etaerr, "Reco_conv_tk2_etaerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_thetaerr", Reco_conv_tk2_thetaerr, "Reco_conv_tk2_thetaerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_phierr", Reco_conv_tk2_phierr, "Reco_conv_tk2_phierr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_lambdaerr", Reco_conv_tk2_lambdaerr, "Reco_conv_tk2_lambdaerr[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_d0", Reco_conv_tk2_d0, "Reco_conv_tk2_d0[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_pout", Reco_conv_tk2_pout, "Reco_conv_tk2_pout[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_tk2_pin", Reco_conv_tk2_pin, "Reco_conv_tk2_pin[Reco_conv_size]/F");
+  //
+  myTree->Branch("Reco_conv_pt", Reco_conv_pt, "Reco_conv_pt[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_eta", Reco_conv_eta, "Reco_conv_eta[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_phi", Reco_conv_phi, "Reco_conv_phi[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_et", Reco_conv_et, "Reco_conv_et[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_energy", Reco_conv_energy, "Reco_conv_energy[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_deltaEta", Reco_conv_deltaEta, "Reco_conv_deltaEta[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_deltaPhi", Reco_conv_deltaPhi, "Reco_conv_deltaPhi[Reco_conv_size]/F");
+  myTree->Branch("Reco_conv_deltaR", Reco_conv_deltaR, "Reco_conv_deltaR[Reco_conv_size]/F");
+  //
+  myTree->Branch("Reco_conv_vtx", "TClonesArray", &Reco_conv_vtx, 32000, 0);
+  myTree->Branch("Reco_conv_pair_momentum", "TClonesArray", &Reco_conv_pair_momentum, 32000, 0);
+  myTree->Branch("Reco_conv_refitted_momentum", "TClonesArray", &Reco_conv_refitted_momentum, 32000, 0);
+  myTree->Branch("Reco_conv_singleleg_momentum", "TClonesArray", &Reco_conv_singleleg_momentum, 32000, 0);
+  
+  //
   myTree->Branch("Reco_QQ_size", &Reco_QQ_size,  "Reco_QQ_size/I");
   myTree->Branch("Reco_QQ_type", Reco_QQ_type,   "Reco_QQ_type[Reco_QQ_size]/I");
   myTree->Branch("Reco_QQ_sign", Reco_QQ_sign,   "Reco_QQ_sign[Reco_QQ_size]/I");
@@ -1922,6 +2384,8 @@ HiOniaAnalyzer::InitTree()
 
     myTree->Branch("Reco_trk_size", &Reco_trk_size,  "Reco_trk_size/I");
     myTree->Branch("Reco_trk_charge", Reco_trk_charge,   "Reco_trk_charge[Reco_trk_size]/I");
+    myTree->Branch("Reco_isgoodTrk", Reco_isgoodTrk,   "Reco_isgoodTrk[Reco_trk_size]/O");
+    myTree->Branch("Reco_isMuTrk", Reco_isMuTrk,   "Reco_isMuTrk[Reco_trk_size]/O");
     myTree->Branch("Reco_trk_4mom", "TClonesArray", &Reco_trk_4mom, 32000, 0);
     myTree->Branch("Reco_trk_vtx", "TClonesArray", &Reco_trk_vtx, 32000, 0);
     myTree->Branch("Reco_trk_dxyError", Reco_trk_dxyError, "Reco_trk_dxyError[Reco_trk_size]/F");
@@ -1960,11 +2424,27 @@ HiOniaAnalyzer::InitTree()
     myTree->Branch("Gen_QQ_ctau3D",      Gen_QQ_ctau3D,    "Gen_QQ_ctau3D[Gen_QQ_size]/F");  
     myTree->Branch("Gen_QQ_mupl_4mom", "TClonesArray", &Gen_QQ_mupl_4mom, 32000, 0); 
     myTree->Branch("Gen_QQ_mumi_4mom", "TClonesArray", &Gen_QQ_mumi_4mom, 32000, 0);
+    myTree->Branch("Gen_QQ_vtx",       "TClonesArray", &Gen_QQ_vtx,       32000, 0);
 
     myTree->Branch("Gen_mu_size",   &Gen_mu_size,  "Gen_mu_size/I");
     myTree->Branch("Gen_mu_type",   Gen_mu_type,   "Gen_mu_type[Gen_mu_size]/I");
     myTree->Branch("Gen_mu_charge", Gen_mu_charge, "Gen_mu_charge[Gen_mu_size]/I");
     myTree->Branch("Gen_mu_4mom",   "TClonesArray", &Gen_mu_4mom, 32000, 0);
+
+    myTree->Branch("Gen_trk_size", &Gen_trk_size,  "Gen_trk_size/I");
+    myTree->Branch("Gen_trk_4mom", "TClonesArray", &Gen_trk_4mom, 32000, 0);
+    myTree->Branch("Gen_trk_vtx",  "TClonesArray", &Gen_trk_4mom, 32000, 0);
+    
+    
+    myTree->Branch("Gen_conv_size",      &Gen_conv_size,    "Gen_conv_size/I");
+    myTree->Branch("Gen_conv_4mom",      "TClonesArray", &Gen_conv_4mom, 32000, 0);
+    myTree->Branch("Gen_conv_elpl_4mom", "TClonesArray", &Gen_conv_elpl_4mom, 32000, 0); 
+    myTree->Branch("Gen_conv_elmi_4mom", "TClonesArray", &Gen_conv_elmi_4mom, 32000, 0);
+    
+
+    myTree->Branch("Gen_chi_size",      &Gen_chi_size,    "Gen_chi_size/I");
+    myTree->Branch("Gen_chi_4mom",      "TClonesArray", &Gen_chi_4mom, 32000, 0);
+
   }
 
   return;
@@ -2335,6 +2815,47 @@ int HiOniaAnalyzer::muonIDmask(const pat::Muon* muon)
          mask = mask | (int) pow(2, type);
 
    return mask;
+}
+
+// For conv
+pat::CompositeCandidate* HiOniaAnalyzer::makeconvCandidate(const reco::Conversion& reco_conv) {
+
+  pat::CompositeCandidate *convCand = new pat::CompositeCandidate();
+  convCand->setP4(convertVector(reco_conv.refittedPair4Momentum()));
+  convCand->setVertex(reco_conv.conversionVertex().position());
+
+  //add electrons as daughters (composite candidate with only momentum information)
+  pat::Electron *ele1 = new pat::Electron();
+  pat::Electron *ele2 = new pat::Electron();
+  double mass_ele = 0.0005109989461; //GeV
+  
+  math::XYZVector mom_ele1 = reco_conv.tracks()[0]->momentum();
+  double E_ele1 = sqrt(mass_ele*mass_ele + mom_ele1.Mag2());
+  math::XYZTLorentzVector p4_ele1 = math::XYZTLorentzVector(mom_ele1.X(),mom_ele1.Y(),mom_ele1.Z(),E_ele1);
+  ele1->setP4(p4_ele1);
+  ele1->setVertex(reco_conv.conversionVertex().position());
+  ele1->setCharge(reco_conv.tracks()[0]->charge());
+  
+  math::XYZVector mom_ele2 = reco_conv.tracks()[1]->momentum();
+  double E_ele2 = sqrt(mass_ele*mass_ele + mom_ele2.Mag2());
+  math::XYZTLorentzVector p4_ele2 = math::XYZTLorentzVector(mom_ele2.X(),mom_ele2.Y(),mom_ele2.Z(),E_ele2);
+  ele2->setP4(p4_ele2);
+  ele2->setVertex(reco_conv.conversionVertex().position());
+  ele2->setCharge(reco_conv.tracks()[1]->charge());
+  
+  convCand->addDaughter(*ele1,"electron1");
+  convCand->addDaughter(*ele2,"electron2");
+
+  //convCand->addUserData<reco::Track>( "track0", *reco_conv.tracks()[0] );
+  //convCand->addUserData<reco::Track>( "track1", *reco_conv.tracks()[1] );
+
+  return convCand;
+
+}
+
+// For conv
+reco::Candidate::LorentzVector HiOniaAnalyzer::convertVector(const math::XYZTLorentzVectorF& v) {
+    return reco::Candidate::LorentzVector(v.x(),v.y(), v.z(), v.t());
 }
 
 //define this as a plug-in
