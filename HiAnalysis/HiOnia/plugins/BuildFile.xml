@@ -1,4 +1,5 @@
 <library   file="*.cc" name="HiOniaAnalyzerPlugins">
   <use   name="HiAnalysis/HiOnia"/>
+  <use   name="CommonTools/Statistics"/>
   <flags   EDM_PLUGIN="1"/>
 </library>
