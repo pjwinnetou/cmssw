@@ -117,6 +117,16 @@ process.load('HeavyIonsAnalysis.JetAnalysis.akCs4PFJetSequence_pponPbPb_data_cff
 process.load("HeavyIonsAnalysis.TrackAnalysis.TrackAnalyzers_cff")
 ###############################################################################
 
+# ZDC RecHit Producer
+process.load('HeavyIonsAnalysis.ZDCAnalysis.QWZDC2018Producer_cfi')
+process.load('HeavyIonsAnalysis.ZDCAnalysis.QWZDC2018RecHit_cfi')
+
+process.load('HeavyIonsAnalysis.ZDCAnalysis.zdcanalyzer_cfi')
+process.zdcanalyzer.doZDCRecHit = True
+process.zdcanalyzer.doZDCDigi = False
+process.zdcanalyzer.zdcRecHitSrc = cms.InputTag("QWzdcreco")
+process.zdcanalyzer.calZDCDigi = True
+################################
 
 
 ###############################################################################
@@ -128,7 +138,10 @@ process.forest = cms.Path(
     # process.particleFlowAnalyser +
     process.hiEvtAnalyzer +
     process.ggHiNtuplizer +
-    process.akCs4PFJetAnalyzer
+    process.akCs4PFJetAnalyzer +
+	 process.zdcdigi +
+	 process.QWzdcreco +
+	 process.zdcanalyzer
     )
 
 #customisation
