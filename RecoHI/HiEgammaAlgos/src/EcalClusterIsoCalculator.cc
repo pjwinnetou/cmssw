@@ -52,7 +52,6 @@ double EcalClusterIsoCalculator::getEcalClusterIso(const reco::SuperClusterRef c
                           cluster->position().z());
 
    double TotalEt = 0;
-
    TotalEt = - cluster->rawEnergy()/cosh(cluster->eta());
 
    // Loop over barrel basic clusters
@@ -86,6 +85,7 @@ double EcalClusterIsoCalculator::getEcalClusterIso(const reco::SuperClusterRef c
          TotalEt += et;
       }
    }
+
 
    return TotalEt;
 }
@@ -138,4 +138,64 @@ double EcalClusterIsoCalculator::getBkgSubEcalClusterIso(const reco::SuperCluste
    double CCx = (Cx - TotalEt / 40.0 * x) * (1/(1-x/40.));
 
    return CCx;
+}
+
+double EcalClusterIsoCalculator::getBkgSubEcalClusterIso_flowModulation(const reco::SuperClusterRef cluster, const double x, double const threshold, const std::vector<double> rho_)
+{
+   if(!fEBclusters_) {
+      return -100;
+   }
+
+   if(!fEEclusters_) {
+      return -100;
+   }
+
+   double SClusterEta = cluster->eta();
+   double TotalEt = 0;
+
+   TotalEt = - cluster->rawEnergy()/cosh(cluster->eta());
+
+   for(BasicClusterCollection::const_iterator iclu = fEBclusters_->begin();
+       iclu != fEBclusters_->end(); ++iclu) {
+      const BasicCluster *clu = &(*iclu);
+      math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
+      double eta = ClusPoint.eta();
+
+      double dEta = fabs(eta-SClusterEta);
+
+     if (dEta<x*0.1) {
+         double et = clu->energy()/cosh(eta);
+         if (et<threshold) et=0;
+         TotalEt += et;
+      }
+   }
+
+   for(BasicClusterCollection::const_iterator iclu = fEEclusters_->begin();
+       iclu != fEEclusters_->end(); ++iclu) {
+      const BasicCluster *clu = &(*iclu);
+      math::XYZVector ClusPoint(clu->x(),clu->y(),clu->z());
+      double eta = ClusPoint.eta();
+      double dEta = fabs(eta-SClusterEta);
+
+      if (dEta<x*0.1) {
+         double et = clu->energy()/cosh(eta);
+         if (et<threshold) et=0;
+         TotalEt += et;
+      }
+   }
+
+   double A = PI* (4*x*0.1 - x*x*0.01);
+   double flowt = x*x*0.01*PI* getFlowmodulation(Cluster->phi(), psi2 = rho_->at(2), 0, rho_->at(1), 0);
+   double Cx = getEcalClusterIso(cluster,x,threshold);
+   double CCx = ( (A-1)*Cx - TotalEt*flowt )/A;
+
+   return CCx;
+
+
+}
+
+
+double EcalClusterIsoCalculator::getFlowmodulation(const double phi, const double eventPlane2, const double eventPlane3, const double par1, const double par2){
+double mod = 1. + 2.*(par1*cos(2.*(phi - eventPlane2))) + par2*cos(3.*(phi - eventPlane3));
+return mod;
 }
