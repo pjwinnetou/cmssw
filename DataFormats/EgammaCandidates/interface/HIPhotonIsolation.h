@@ -14,6 +14,12 @@ namespace reco{
       ecalClusterIsoR3_(0),
       ecalClusterIsoR4_(0),
       ecalClusterIsoR5_(0),
+ecalClusterIsoR1_flow_(0),
+ecalClusterIsoR2_flow_(0),
+ecalClusterIsoR3_flow_(0),
+ecalClusterIsoR4_flow_(0),
+ecalClusterIsoR5_flow_(0),
+
       hcalRechitIsoR1_(0),
       hcalRechitIsoR2_(0),
       hcalRechitIsoR3_(0),
@@ -41,6 +47,17 @@ namespace reco{
     float ecalClusterIsoR4() const {return ecalClusterIsoR4_;}
     /// Cluster-based isolation (ECAL) R = 0.5
     float ecalClusterIsoR5() const {return ecalClusterIsoR5_;}
+
+    float ecalClusterIsoR1() const {return ecalClusterIsoR1_flow_;}
+    float ecalClusterIsoR2() const {return ecalClusterIsoR2_flow_;}
+    float ecalClusterIsoR3() const {return ecalClusterIsoR3_flow_;}
+    float ecalClusterIsoR4() const {return ecalClusterIsoR4_flow_;}
+    float ecalClusterIsoR5() const {return ecalClusterIsoR5_flow_;}
+
+
+
+
+
 
     /// Rechit-based isolation (HCAL) R = 0.1
     float hcalRechitIsoR1() const {return hcalRechitIsoR1_;}
@@ -113,6 +130,8 @@ namespace reco{
   private:
 
     float ecalClusterIsoR1_, ecalClusterIsoR2_, ecalClusterIsoR3_, ecalClusterIsoR4_, ecalClusterIsoR5_;
+float ecalClusterIsoR1_flow_, ecalClusterIsoR2_flow_, ecalClusterIsoR3_flow_, ecalClusterIsoR4_flow_, ecalClusterIsoR5_flow_;
+
     float hcalRechitIsoR1_, hcalRechitIsoR2_, hcalRechitIsoR3_, hcalRechitIsoR4_, hcalRechitIsoR5_;
     float trackIsoR1PtCut20_, trackIsoR2PtCut20_, trackIsoR3PtCut20_, trackIsoR4PtCut20_, trackIsoR5PtCut20_;
 
