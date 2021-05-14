@@ -48,18 +48,13 @@ ecalClusterIsoR5_flow_(0),
     /// Cluster-based isolation (ECAL) R = 0.5
     float ecalClusterIsoR5() const {return ecalClusterIsoR5_;}
 
-    float ecalClusterIsoR1() const {return ecalClusterIsoR1_flow_;}
-    float ecalClusterIsoR2() const {return ecalClusterIsoR2_flow_;}
-    float ecalClusterIsoR3() const {return ecalClusterIsoR3_flow_;}
-    float ecalClusterIsoR4() const {return ecalClusterIsoR4_flow_;}
-    float ecalClusterIsoR5() const {return ecalClusterIsoR5_flow_;}
+    float ecalClusterIsoR1_flow() const {return ecalClusterIsoR1_flow_;}
+    float ecalClusterIsoR2_flow() const {return ecalClusterIsoR2_flow_;}
+    float ecalClusterIsoR3_flow() const {return ecalClusterIsoR3_flow_;}
+    float ecalClusterIsoR4_flow() const {return ecalClusterIsoR4_flow_;}
+    float ecalClusterIsoR5_flow() const {return ecalClusterIsoR5_flow_;}
 
 
-
-
-
-
-    /// Rechit-based isolation (HCAL) R = 0.1
     float hcalRechitIsoR1() const {return hcalRechitIsoR1_;}
     /// Rechit-based isolation (HCAL) R = 0.2
     float hcalRechitIsoR2() const {return hcalRechitIsoR2_;}
@@ -98,6 +93,14 @@ ecalClusterIsoR5_flow_(0),
     void ecalClusterIsoR4(float ecalClusterIsoR4)  {ecalClusterIsoR4_ = ecalClusterIsoR4;}
     /// Cluster-based isolation (ECAL) R = 0.5
     void ecalClusterIsoR5(float ecalClusterIsoR5)  {ecalClusterIsoR5_ = ecalClusterIsoR5;}
+
+void ecalClusterIsoR1_flow(float ecalClusterIsoR1_flow)  {ecalClusterIsoR1_flow_ = ecalClusterIsoR1_flow;}
+void ecalClusterIsoR2_flow(float ecalClusterIsoR2_flow)  {ecalClusterIsoR2_flow_ = ecalClusterIsoR2_flow;}
+void ecalClusterIsoR3_flow(float ecalClusterIsoR3_flow)  {ecalClusterIsoR3_flow_ = ecalClusterIsoR3_flow;}
+void ecalClusterIsoR4_flow(float ecalClusterIsoR4_flow)  {ecalClusterIsoR4_flow_ = ecalClusterIsoR4_flow;}
+void ecalClusterIsoR5_flow(float ecalClusterIsoR5_flow)  {ecalClusterIsoR5_flow_ = ecalClusterIsoR5_flow;}
+
+
 
     /// Rechit-based isolation (HCAL) R = 0.1
     void hcalRechitIsoR1(float hcalRechitIsoR1)  {hcalRechitIsoR1_ = hcalRechitIsoR1;}

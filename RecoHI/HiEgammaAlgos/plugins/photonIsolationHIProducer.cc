@@ -107,6 +107,13 @@ photonIsolationHIProducer::produce(edm::Event& evt, const edm::EventSetup& es)
     iso.ecalClusterIsoR3(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),3,0));
     iso.ecalClusterIsoR4(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),4,0));
     iso.ecalClusterIsoR5(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),5,0));
+    // Flow-isolation test
+    iso.ecalClusterIsoR1(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),1,0));
+    iso.ecalClusterIsoR2(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),2,0));
+    iso.ecalClusterIsoR3(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),3,0));
+    iso.ecalClusterIsoR4(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),4,0));
+    iso.ecalClusterIsoR5(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),5,0));
+
 
     iso.hcalRechitIsoR1(RxC.getBkgSubHcalRechitIso(phoItr->superCluster(),1,0));
     iso.hcalRechitIsoR2(RxC.getBkgSubHcalRechitIso(phoItr->superCluster(),2,0));
