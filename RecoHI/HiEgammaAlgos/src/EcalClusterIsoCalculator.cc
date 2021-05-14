@@ -184,10 +184,9 @@ double EcalClusterIsoCalculator::getBkgSubEcalClusterIso_flowModulation(const re
       }
    }
 
-   double A = PI* (4*x*0.1 - x*x*0.01);
-   double flowt = x*x*0.01*PI* getFlowmodulation(Cluster->phi(), psi2 = rho_->at(2), 0, rho_->at(1), 0);
+   double flowt = getFlowmodulation(Cluster->phi(), psi2 = rho_->at(2), 0, rho_->at(1), 0);
    double Cx = getEcalClusterIso(cluster,x,threshold);
-   double CCx = ( (A-1)*Cx - TotalEt*flowt )/A;
+   double CCx = Cx - (x/(40-x)) * (TotalEt-Cx) * flowt;
 
    return CCx;
 
@@ -196,6 +195,6 @@ double EcalClusterIsoCalculator::getBkgSubEcalClusterIso_flowModulation(const re
 
 
 double EcalClusterIsoCalculator::getFlowmodulation(const double phi, const double eventPlane2, const double eventPlane3, const double par1, const double par2){
-double mod = 1. + 2.*(par1*cos(2.*(phi - eventPlane2))) + par2*cos(3.*(phi - eventPlane3));
-return mod;
+	double mod = 1. + 2.*(par1*cos(2.*(phi - eventPlane2))) + par2*cos(3.*(phi - eventPlane3));
+	return mod;
 }
