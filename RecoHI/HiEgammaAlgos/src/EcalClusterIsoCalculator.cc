@@ -140,7 +140,7 @@ double EcalClusterIsoCalculator::getBkgSubEcalClusterIso(const reco::SuperCluste
    return CCx;
 }
 
-double EcalClusterIsoCalculator::getBkgSubEcalClusterIso_flowModulation(const reco::SuperClusterRef cluster, const double x, double const threshold, const std::vector<double> rho_)
+double EcalClusterIsoCalculator::getBkgSubEcalClusterIso_flowModulation(const reco::SuperClusterRef cluster, const double x, double const threshold, const edm::Handle<std::vector<double>> rho_)
 {
    if(!fEBclusters_) {
       return -100;
@@ -184,7 +184,7 @@ double EcalClusterIsoCalculator::getBkgSubEcalClusterIso_flowModulation(const re
       }
    }
 
-   double flowt = getFlowmodulation(Cluster->phi(), psi2 = rho_->at(2), 0, rho_->at(1), 0);
+   double flowt = getFlowmodulation(cluster->phi(), rho_->at(2), 0, rho_->at(1), 0);
    double Cx = getEcalClusterIso(cluster,x,threshold);
    double CCx = Cx - (x/(40-x)) * (TotalEt-Cx) * flowt;
 

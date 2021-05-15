@@ -385,6 +385,11 @@ class ggHiNtuplizer : public edm::EDAnalyzer {
    std::vector<float>  pho_ecalClusterIsoR3_;
    std::vector<float>  pho_ecalClusterIsoR4_;
    std::vector<float>  pho_ecalClusterIsoR5_;
+   std::vector<float>  pho_ecalClusterIsoR2_flow_;
+   std::vector<float>  pho_ecalClusterIsoR3_flow_;
+   std::vector<float>  pho_ecalClusterIsoR4_flow_;
+   std::vector<float>  pho_ecalClusterIsoR5_flow_;
+
    std::vector<float>  pho_hcalRechitIsoR1_;
    std::vector<float>  pho_hcalRechitIsoR2_;
    std::vector<float>  pho_hcalRechitIsoR3_;
