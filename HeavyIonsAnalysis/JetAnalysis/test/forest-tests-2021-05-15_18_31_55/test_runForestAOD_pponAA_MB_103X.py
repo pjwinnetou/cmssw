@@ -1,13 +1,11 @@
 ### HiForest Configuration
 # Collisions: PbPb
-# Type: Embedded Monte Carlo
+# Type: Minimum Bias Monte Carlo
 # Input: AOD
-
-cleanJets = True
 
 import FWCore.ParameterSet.Config as cms
 process = cms.Process('HiForest')
-VerbosityLevel = cms.string('INFO');
+
 ###############################################################################
 # HiForest labelling info
 ###############################################################################
@@ -27,14 +25,12 @@ process.HiForest.HiForestVersion = cms.string(version)
 
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
-    fileNames = cms.untracked.vstring(
-        "file:/afs/cern.ch/work/r/rbi/public/forest/HINPbPbAutumn18DR_Pythia8_Ze10e10_TuneCP5_5p02TeV_AODSIM.root"
-        ),
+fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/s/seyoung/cernbox/Work/test/ConstituentSub/CMSSW_10_3_3_patch1/src/HeavyIonsAnalysis/JetAnalysis/test/forest-tests-2021-05-15_18_31_55/samples/HINPbPbAutumn18DR_Pythia8_Ze10e10_TuneCP5_5p02TeV_1032_AODSIM.root'),
     )
 
 # Number of events we want to process, -1 = all events
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1)
     )
 
 ###############################################################################
@@ -66,21 +62,12 @@ process.load("RecoHI.HiCentralityAlgos.CentralityBin_cfi")
 process.centralityBin.Centrality = cms.InputTag("hiCentrality")
 process.centralityBin.centralityVariable = cms.string("HFtowers")
 
-process.GlobalTag.toGet.extend([
-    cms.PSet(record = cms.string("BTagTrackProbability3DRcd"),
-             tag = cms.string("JPcalib_MC103X_2018PbPb_v4"),
-             connect = cms.string("frontier://FrontierProd/CMS_CONDITIONS")
-
-         )
-      ])
-
-
 ###############################################################################
 # Define tree output
 ###############################################################################
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("HiForestAOD.root"))
+    fileName = cms.string("runForestAOD_pponAA_MB_103X.root"))
 
 ###############################################################################
 # Additional Reconstruction and Analysis: Main Body
@@ -90,7 +77,7 @@ process.TFileService = cms.Service("TFileService",
 # Jets
 #############################
 # jet reco sequence
-process.load('HeavyIonsAnalysis.JetAnalysis.fullJetSequence_pponAA_MIX_cff')
+process.load('HeavyIonsAnalysis.JetAnalysis.fullJetSequence_pponAA_MB_cff')
 
 process.load('HeavyIonsAnalysis.JetAnalysis.hiFJRhoAnalyzer_cff')
 process.load("HeavyIonsAnalysis.JetAnalysis.pfcandAnalyzer_cfi")
@@ -98,7 +85,6 @@ process.pfcandAnalyzer.doTrackMatching  = cms.bool(True)
 
 from HeavyIonsAnalysis.Configuration.CommonFunctions_cff import overrideJEC_MC_PbPb5020_2018
 process = overrideJEC_MC_PbPb5020_2018(process)
-
 ###############################################################################
 
 #############################
@@ -146,16 +132,15 @@ SS2018PbPbMC = "HeavyIonsAnalysis/PhotonAnalysis/data/SS2018PbPbMC.dat"
 process.load('HeavyIonsAnalysis.PhotonAnalysis.correctedElectronProducer_cfi')
 process.correctedElectrons.correctionFile = SS2018PbPbMC
 
-#process.load('RecoHI.HiEgammaAlgos.photonIsolationHIProducer_cfi')
-
 process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
 process.ggHiNtuplizerGED.gsfElectronLabel = "correctedElectrons"
-#SkipEvent = cms.untracked.vstring('ProductNotFound')
+
 ###############################################################################
 
 #######################
 # B-tagging
 ######################
+
 # replace pp CSVv2 with PbPb CSVv2 (positive and negative taggers unchanged!)
 process.load('RecoBTag.CSVscikit.csvscikitTagJetTags_cfi')
 process.load('RecoBTag.CSVscikit.csvscikitTaggerProducer_cfi')
@@ -189,13 +174,6 @@ process.load('HeavyIonsAnalysis.JetAnalysis.rechitanalyzer_cfi')
 process.load("RecoVertex.PrimaryVertexProducer.OfflinePrimaryVerticesRecovery_cfi")
 process.load("TrackingTools.TransientTrack.TransientTrackBuilder_cfi")
 
-# clean bad PF candidates
-if cleanJets:
-    process.load("RecoHI.HiJetAlgos.HiBadParticleFilter_cfi")
-    process.pfBadCandAnalyzer = process.pfcandAnalyzer.clone(pfCandidateLabel = cms.InputTag("filteredParticleFlow","cleaned"))
-    process.pfFilter = cms.Path(process.filteredParticleFlow + process.pfBadCandAnalyzer)
-
-
 #########################
 # Main analysis list
 #########################
@@ -209,12 +187,11 @@ process.ana_step = cms.Path(
     # process.l1object +
     process.centralityBin +
     process.hiEvtAnalyzer +
-    process.HiGenParticleAna +
-    process.genSignalSequence +
+    process.genCleanedSequence +
     process.jetSequence +
     process.hiPuRhoR3Analyzer + 
+    process.HiGenParticleAna +
     process.correctedElectrons +
-    #process.photonIsolationHIProducer+
     process.ggHiNtuplizer +
     process.ggHiNtuplizerGED +
     process.hiFJRhoAnalyzer +
@@ -287,12 +264,6 @@ process.pAna = cms.EndPath(process.skimanalysis)
 from HLTrigger.Configuration.CustomConfigs import MassReplaceInputTag
 process = MassReplaceInputTag(process,"offlinePrimaryVertices","offlinePrimaryVerticesRecovery")
 process.offlinePrimaryVerticesRecovery.oldVertexLabel = "offlinePrimaryVertices"
-
-if cleanJets == True:
-    from HLTrigger.Configuration.CustomConfigs import MassReplaceInputTag
-    process = MassReplaceInputTag(process,"particleFlow","filteredParticleFlow")                                                                                                               
-    process.filteredParticleFlow.PFCandidates  = "particleFlow"
-
 
 # Customization
 ###############################################################################

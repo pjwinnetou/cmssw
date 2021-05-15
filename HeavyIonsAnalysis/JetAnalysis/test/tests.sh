@@ -112,8 +112,8 @@ fi
 # finish, clean up
 popd > /dev/null
 
-[ ! $keepsample ] && [ ! $inputdir ] && rm -r $sampledir
-[ ! $keepsample ] && [ ! $keepoutput ] && [ ! $fail ] && rm -r $area
+#[ ! $keepsample ] && [ ! $inputdir ] && rm -r $sampledir
+#[ ! $keepsample ] && [ ! $keepoutput ] && [ ! $fail ] && rm -r $area
 
 [ $keepoutput ] && echo -e "\n  output kept:\n\E[34m$area\E[0m"
 
