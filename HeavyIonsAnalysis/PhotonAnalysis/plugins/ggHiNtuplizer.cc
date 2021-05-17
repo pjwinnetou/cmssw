@@ -19,6 +19,8 @@
 ggHiNtuplizer::ggHiNtuplizer(const edm::ParameterSet& ps) :
   effectiveAreas_( (ps.getParameter<edm::FileInPath>("effAreasConfigFile")).fullPath() )
 {
+
+  rhoFlowFitParamsToken_ = consumes<std::vector<double>>(ps.getParameter<edm::InputTag>( "rhoFlowFitParams" ));
   // class instance configuration
   doGenParticles_         = ps.getParameter<bool>("doGenParticles");
   doSuperClusters_        = ps.getParameter<bool>("doSuperClusters");
@@ -1058,6 +1060,7 @@ void ggHiNtuplizer::analyze(const edm::Event& e, const edm::EventSetup& es)
   lumis_  = e.luminosityBlock();
   isData_ = e.isRealData();
 
+  e.getByToken(rhoFlowFitParamsToken_, rhoFlowFitParams);
   rho_ = -1;
   edm::Handle<double> rhoH;
   if (doEffectiveAreas_) {
@@ -1565,6 +1568,7 @@ void ggHiNtuplizer::fillPhotons(const edm::Event& e, const edm::EventSetup& es, 
       e.getByToken(recHitsEE_, recHitsEEHandle);
   }
 
+
   // loop over photons
   for (auto pho = recoPhotonsHandle->begin(); pho != recoPhotonsHandle->end(); ++pho) {
     phoE_             .push_back(pho->energy());
@@ -1739,6 +1743,7 @@ void ggHiNtuplizer::fillPhotons(const edm::Event& e, const edm::EventSetup& es, 
     //    phoBC2E_  .push_back(-99);
     //    phoBC2Eta_.push_back(-99);
     // }
+    
 
     if (useValMapIso_) {
       unsigned int idx = pho - recoPhotonsHandle->begin();
@@ -1748,10 +1753,11 @@ void ggHiNtuplizer::fillPhotons(const edm::Event& e, const edm::EventSetup& es, 
       pho_ecalClusterIsoR3_.push_back(isoMap[photonRef].ecalClusterIsoR3());
       pho_ecalClusterIsoR4_.push_back(isoMap[photonRef].ecalClusterIsoR4());
       pho_ecalClusterIsoR5_.push_back(isoMap[photonRef].ecalClusterIsoR5());
-      pho_ecalClusterIsoR2_flow_.push_back(isoMap[photonRef].ecalClusterIsoR2());
-      pho_ecalClusterIsoR3_flow_.push_back(isoMap[photonRef].ecalClusterIsoR3());
-      pho_ecalClusterIsoR4_flow_.push_back(isoMap[photonRef].ecalClusterIsoR4());
-      pho_ecalClusterIsoR5_flow_.push_back(isoMap[photonRef].ecalClusterIsoR5());
+
+      pho_ecalClusterIsoR2_flow_.push_back(isoMap[photonRef].ecalClusterIsoR2() * getFlowmodulation(pho->superCluster()->phi(),rhoFlowFitParams->at(2), 0, rhoFlowFitParams->at(1), 0));
+      pho_ecalClusterIsoR3_flow_.push_back(isoMap[photonRef].ecalClusterIsoR3() * getFlowmodulation(pho->superCluster()->phi(),rhoFlowFitParams->at(2), 0, rhoFlowFitParams->at(1), 0));
+      pho_ecalClusterIsoR4_flow_.push_back(isoMap[photonRef].ecalClusterIsoR4() * getFlowmodulation(pho->superCluster()->phi(),rhoFlowFitParams->at(2), 0, rhoFlowFitParams->at(1), 0));
+      pho_ecalClusterIsoR5_flow_.push_back(isoMap[photonRef].ecalClusterIsoR5() * getFlowmodulation(pho->superCluster()->phi(),rhoFlowFitParams->at(2), 0, rhoFlowFitParams->at(1), 0));
 
       pho_hcalRechitIsoR1_.push_back(isoMap[photonRef].hcalRechitIsoR1());
       pho_hcalRechitIsoR2_.push_back(isoMap[photonRef].hcalRechitIsoR2());
@@ -2069,6 +2075,12 @@ void ggHiNtuplizer::fillMuons(const edm::Event& e, const edm::EventSetup& es, re
 
     nMu_++;
   } // muons loop
+}
+
+
+double ggHiNtuplizer::getFlowmodulation(const double phi, const double eventPlane2, const double eventPlane3, const double par1, const double par2){
+  double mod = 1. + 2.*(par1*cos(2.*(phi - eventPlane2))) + par2*cos(3.*(phi - eventPlane3));
+  return mod;
 }
 
 DEFINE_FWK_MODULE(ggHiNtuplizer);

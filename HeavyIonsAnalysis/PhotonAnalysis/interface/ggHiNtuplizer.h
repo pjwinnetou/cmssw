@@ -50,6 +50,7 @@ class ggHiNtuplizer : public edm::EDAnalyzer {
    // Et and pT sums
    float getGenCalIso(edm::Handle<std::vector<reco::GenParticle> >&, reco::GenParticleCollection::const_iterator, float dRMax, bool removeMu, bool removeNu);
    float getGenTrkIso(edm::Handle<std::vector<reco::GenParticle> >&, reco::GenParticleCollection::const_iterator, float dRMax);
+   double getFlowmodulation(const double phi, const double eventPlane2, const double eventPlane3, const double par1, const double par2);
 
    // switches
    bool doGenParticles_;
@@ -68,6 +69,8 @@ class ggHiNtuplizer : public edm::EDAnalyzer {
    bool doRecHitsEE_;
    bool doSuperClusters_;
 
+   edm::Handle<std::vector<double>> rhoFlowFitParams;
+   edm::EDGetTokenT<std::vector<double>>                  rhoFlowFitParamsToken_;
    // handles to collections of objects
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> >    genPileupCollection_;
    edm::EDGetTokenT<std::vector<reco::GenParticle> >    genParticlesCollection_;

@@ -39,6 +39,7 @@ ggHiNtuplizer = cms.EDAnalyzer("ggHiNtuplizer",
     particleFlowCollection = cms.InputTag("particleFlow"),
     removePhotonPfIsoFootprint = cms.bool(False),
     particleBasedIsolationPhoton = cms.InputTag("DUMMY"),
+    rhoFlowFitParams = cms.InputTag('hiFJRhoFlowModulationProducer','rhoFlowFitParams'),
 )
 
 ggHiNtuplizerGED = ggHiNtuplizer.clone(
