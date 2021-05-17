@@ -54,8 +54,9 @@ ggHiNtuplizer::ggHiNtuplizer(const edm::ParameterSet& ps) :
       eleTightIdMapToken_     = consumes<edm::ValueMap<bool> >(ps.getParameter<edm::InputTag>("electronTightID"));
     }
   }
-  if (doPhotons_)
+  if (doPhotons_){
     recoPhotonsCollection_  = consumes<edm::View<reco::Photon>>(ps.getParameter<edm::InputTag>("recoPhotonSrc"));
+  }
   if (doMuons_)
     recoMuonsCollection_    = consumes<edm::View<reco::Muon>>(ps.getParameter<edm::InputTag>("recoMuonSrc"));
   vtxCollection_          = consumes<std::vector<reco::Vertex>>(ps.getParameter<edm::InputTag>("VtxLabel"));
@@ -407,6 +408,12 @@ ggHiNtuplizer::ggHiNtuplizer(const edm::ParameterSet& ps) :
     tree_->Branch("pho_ecalClusterIsoR3", &pho_ecalClusterIsoR3_);
     tree_->Branch("pho_ecalClusterIsoR4", &pho_ecalClusterIsoR4_);
     tree_->Branch("pho_ecalClusterIsoR5", &pho_ecalClusterIsoR5_);
+    tree_->Branch("pho_ecalClusterIsoR2_flow", &pho_ecalClusterIsoR2_flow_);
+    tree_->Branch("pho_ecalClusterIsoR3_flow", &pho_ecalClusterIsoR3_flow_);
+    tree_->Branch("pho_ecalClusterIsoR4_flow", &pho_ecalClusterIsoR4_flow_);
+    tree_->Branch("pho_ecalClusterIsoR5_flow", &pho_ecalClusterIsoR5_flow_);
+
+
     tree_->Branch("pho_hcalRechitIsoR1", &pho_hcalRechitIsoR1_);
     tree_->Branch("pho_hcalRechitIsoR2", &pho_hcalRechitIsoR2_);
     tree_->Branch("pho_hcalRechitIsoR3", &pho_hcalRechitIsoR3_);
@@ -879,6 +886,11 @@ void ggHiNtuplizer::analyze(const edm::Event& e, const edm::EventSetup& es)
     pho_ecalClusterIsoR3_.clear();
     pho_ecalClusterIsoR4_.clear();
     pho_ecalClusterIsoR5_.clear();
+    pho_ecalClusterIsoR2_flow_.clear();
+    pho_ecalClusterIsoR3_flow_.clear();
+    pho_ecalClusterIsoR4_flow_.clear();
+    pho_ecalClusterIsoR5_flow_.clear();
+
     pho_hcalRechitIsoR1_.clear();
     pho_hcalRechitIsoR2_.clear();
     pho_hcalRechitIsoR3_.clear();
@@ -1736,6 +1748,11 @@ void ggHiNtuplizer::fillPhotons(const edm::Event& e, const edm::EventSetup& es, 
       pho_ecalClusterIsoR3_.push_back(isoMap[photonRef].ecalClusterIsoR3());
       pho_ecalClusterIsoR4_.push_back(isoMap[photonRef].ecalClusterIsoR4());
       pho_ecalClusterIsoR5_.push_back(isoMap[photonRef].ecalClusterIsoR5());
+      pho_ecalClusterIsoR2_flow_.push_back(isoMap[photonRef].ecalClusterIsoR2());
+      pho_ecalClusterIsoR3_flow_.push_back(isoMap[photonRef].ecalClusterIsoR3());
+      pho_ecalClusterIsoR4_flow_.push_back(isoMap[photonRef].ecalClusterIsoR4());
+      pho_ecalClusterIsoR5_flow_.push_back(isoMap[photonRef].ecalClusterIsoR5());
+
       pho_hcalRechitIsoR1_.push_back(isoMap[photonRef].hcalRechitIsoR1());
       pho_hcalRechitIsoR2_.push_back(isoMap[photonRef].hcalRechitIsoR2());
       pho_hcalRechitIsoR3_.push_back(isoMap[photonRef].hcalRechitIsoR3());

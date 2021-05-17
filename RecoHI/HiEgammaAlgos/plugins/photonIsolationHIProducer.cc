@@ -41,6 +41,7 @@ class photonIsolationHIProducer : public edm::stream::EDProducer<> {
   edm::EDGetTokenT<reco::BasicClusterCollection> barrelClusters_;
   edm::EDGetTokenT<reco::BasicClusterCollection> endcapClusters_;
   edm::EDGetTokenT<reco::TrackCollection> tracks_;
+  edm::EDGetTokenT<std::vector<double>>                       rhoFlowFitParamsToken_;
 
   std::string trackQuality_;
 
@@ -60,6 +61,7 @@ photonIsolationHIProducer::photonIsolationHIProducer(const edm::ParameterSet& co
   barrelClusters_ ( consumes<reco::BasicClusterCollection>(config.getParameter<edm::InputTag>("basicClusterBarrel"))),
   endcapClusters_ ( consumes<reco::BasicClusterCollection>(config.getParameter<edm::InputTag>("basicClusterEndcap"))),
   tracks_ ( consumes<reco::TrackCollection>(config.getParameter<edm::InputTag>("trackCollection"))),
+  rhoFlowFitParamsToken_ ( consumes<std::vector<double>>(config.getParameter<edm::InputTag>( "rhoFlowFitParams" ))),
   trackQuality_ ( config.getParameter<std::string>("trackQuality"))
 {
   produces< reco::HIPhotonIsolationMap >();
@@ -89,6 +91,9 @@ photonIsolationHIProducer::produce(edm::Event& evt, const edm::EventSetup& es)
   edm::Handle<reco::TrackCollection> trackCollection;
   evt.getByToken(tracks_, trackCollection);
 
+  edm::Handle<std::vector<double>> rhoFlowFitParams;
+  evt.getByToken(rhoFlowFitParamsToken_, rhoFlowFitParams);
+
   auto outputMap = std::make_unique<reco::HIPhotonIsolationMap>();
   reco::HIPhotonIsolationMap::Filler filler(*outputMap);
   std::vector<reco::HIPhotonIsolation> isoVector;
@@ -107,6 +112,13 @@ photonIsolationHIProducer::produce(edm::Event& evt, const edm::EventSetup& es)
     iso.ecalClusterIsoR3(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),3,0));
     iso.ecalClusterIsoR4(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),4,0));
     iso.ecalClusterIsoR5(CxC.getBkgSubEcalClusterIso(phoItr->superCluster(),5,0));
+    // Flow-isolation test
+    iso.ecalClusterIsoR1(CxC.getBkgSubEcalClusterIso_flowModulation(phoItr->superCluster(),1,0,rhoFlowFitParams));
+    iso.ecalClusterIsoR2(CxC.getBkgSubEcalClusterIso_flowModulation(phoItr->superCluster(),2,0,rhoFlowFitParams));
+    iso.ecalClusterIsoR3(CxC.getBkgSubEcalClusterIso_flowModulation(phoItr->superCluster(),3,0,rhoFlowFitParams));
+    iso.ecalClusterIsoR4(CxC.getBkgSubEcalClusterIso_flowModulation(phoItr->superCluster(),4,0,rhoFlowFitParams));
+    iso.ecalClusterIsoR5(CxC.getBkgSubEcalClusterIso_flowModulation(phoItr->superCluster(),5,0,rhoFlowFitParams));
+
 
     iso.hcalRechitIsoR1(RxC.getBkgSubHcalRechitIso(phoItr->superCluster(),1,0));
     iso.hcalRechitIsoR2(RxC.getBkgSubHcalRechitIso(phoItr->superCluster(),2,0));
@@ -159,6 +171,7 @@ photonIsolationHIProducer::fillDescriptions(edm::ConfigurationDescriptions& desc
   desc.add<edm::InputTag>("basicClusterBarrel",edm::InputTag("islandBasicClusters:islandBarrelBasicClusters"));
   desc.add<edm::InputTag>("basicClusterEndcap",edm::InputTag("islandBasicClusters:islandEndcapBasicClusters"));
   desc.add<edm::InputTag>("trackCollection",edm::InputTag("hiGeneralTracks"));
+  desc.add<edm::InputTag>("rhoFlowFitParams", edm::InputTag("hiFJRhoFlowModulationProducer","rhoFlowFitParams"));
   desc.add<std::string>("trackQuality","highPurity");
 
   descriptions.add("photonIsolationHIProducer", desc);

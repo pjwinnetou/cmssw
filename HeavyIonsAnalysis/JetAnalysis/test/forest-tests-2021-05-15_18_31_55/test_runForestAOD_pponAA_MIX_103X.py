@@ -27,9 +27,7 @@ process.HiForest.HiForestVersion = cms.string(version)
 
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
-    fileNames = cms.untracked.vstring(
-        "file:/afs/cern.ch/work/r/rbi/public/forest/HINPbPbAutumn18DR_Pythia8_Ze10e10_TuneCP5_5p02TeV_AODSIM.root"
-        ),
+fileNames = cms.untracked.vstring('file:/afs/cern.ch/user/s/seyoung/cernbox/Work/test/ConstituentSub/CMSSW_10_3_3_patch1/src/HeavyIonsAnalysis/JetAnalysis/test/forest-tests-2021-05-15_18_31_55/samples/HINPbPbAutumn18DR_Pythia8_Ze10e10_TuneCP5_5p02TeV_1032_AODSIM.root'),
     )
 
 # Number of events we want to process, -1 = all events
@@ -80,7 +78,7 @@ process.GlobalTag.toGet.extend([
 ###############################################################################
 
 process.TFileService = cms.Service("TFileService",
-    fileName = cms.string("HiForestAOD.root"))
+    fileName = cms.string("runForestAOD_pponAA_MIX_103X.root"))
 
 ###############################################################################
 # Additional Reconstruction and Analysis: Main Body
@@ -146,11 +144,9 @@ SS2018PbPbMC = "HeavyIonsAnalysis/PhotonAnalysis/data/SS2018PbPbMC.dat"
 process.load('HeavyIonsAnalysis.PhotonAnalysis.correctedElectronProducer_cfi')
 process.correctedElectrons.correctionFile = SS2018PbPbMC
 
-#process.load('RecoHI.HiEgammaAlgos.photonIsolationHIProducer_cfi')
-
 process.load('HeavyIonsAnalysis.PhotonAnalysis.ggHiNtuplizer_cfi')
 process.ggHiNtuplizerGED.gsfElectronLabel = "correctedElectrons"
-#SkipEvent = cms.untracked.vstring('ProductNotFound')
+
 ###############################################################################
 
 #######################
@@ -214,7 +210,6 @@ process.ana_step = cms.Path(
     process.jetSequence +
     process.hiPuRhoR3Analyzer + 
     process.correctedElectrons +
-    #process.photonIsolationHIProducer+
     process.ggHiNtuplizer +
     process.ggHiNtuplizerGED +
     process.hiFJRhoAnalyzer +

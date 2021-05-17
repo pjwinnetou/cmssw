@@ -341,7 +341,8 @@
   <class name="edm::PtrVector<reco::Photon>" />
 
   <class name="reco::HIPhotonIsolation" ClassVersion="5">
-    <version ClassVersion="5" checksum="1658387565"/>
+   <version ClassVersion="5" checksum="1658387565"/>
+    <version ClassVersion="4" checksum="1971638020"/>
   </class>
   <class name="edm::Wrapper<reco::HIPhotonIsolation>"/>
   <class name="edm::ValueMap<reco::HIPhotonIsolation>"/>

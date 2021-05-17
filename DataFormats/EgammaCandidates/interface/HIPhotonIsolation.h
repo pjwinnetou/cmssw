@@ -14,6 +14,12 @@ namespace reco{
       ecalClusterIsoR3_(0),
       ecalClusterIsoR4_(0),
       ecalClusterIsoR5_(0),
+ecalClusterIsoR1_flow_(0),
+ecalClusterIsoR2_flow_(0),
+ecalClusterIsoR3_flow_(0),
+ecalClusterIsoR4_flow_(0),
+ecalClusterIsoR5_flow_(0),
+
       hcalRechitIsoR1_(0),
       hcalRechitIsoR2_(0),
       hcalRechitIsoR3_(0),
@@ -42,7 +48,13 @@ namespace reco{
     /// Cluster-based isolation (ECAL) R = 0.5
     float ecalClusterIsoR5() const {return ecalClusterIsoR5_;}
 
-    /// Rechit-based isolation (HCAL) R = 0.1
+    float ecalClusterIsoR1_flow() const {return ecalClusterIsoR1_flow_;}
+    float ecalClusterIsoR2_flow() const {return ecalClusterIsoR2_flow_;}
+    float ecalClusterIsoR3_flow() const {return ecalClusterIsoR3_flow_;}
+    float ecalClusterIsoR4_flow() const {return ecalClusterIsoR4_flow_;}
+    float ecalClusterIsoR5_flow() const {return ecalClusterIsoR5_flow_;}
+
+
     float hcalRechitIsoR1() const {return hcalRechitIsoR1_;}
     /// Rechit-based isolation (HCAL) R = 0.2
     float hcalRechitIsoR2() const {return hcalRechitIsoR2_;}
@@ -82,6 +94,14 @@ namespace reco{
     /// Cluster-based isolation (ECAL) R = 0.5
     void ecalClusterIsoR5(float ecalClusterIsoR5)  {ecalClusterIsoR5_ = ecalClusterIsoR5;}
 
+void ecalClusterIsoR1_flow(float ecalClusterIsoR1_flow)  {ecalClusterIsoR1_flow_ = ecalClusterIsoR1_flow;}
+void ecalClusterIsoR2_flow(float ecalClusterIsoR2_flow)  {ecalClusterIsoR2_flow_ = ecalClusterIsoR2_flow;}
+void ecalClusterIsoR3_flow(float ecalClusterIsoR3_flow)  {ecalClusterIsoR3_flow_ = ecalClusterIsoR3_flow;}
+void ecalClusterIsoR4_flow(float ecalClusterIsoR4_flow)  {ecalClusterIsoR4_flow_ = ecalClusterIsoR4_flow;}
+void ecalClusterIsoR5_flow(float ecalClusterIsoR5_flow)  {ecalClusterIsoR5_flow_ = ecalClusterIsoR5_flow;}
+
+
+
     /// Rechit-based isolation (HCAL) R = 0.1
     void hcalRechitIsoR1(float hcalRechitIsoR1)  {hcalRechitIsoR1_ = hcalRechitIsoR1;}
     /// Rechit-based isolation (HCAL) R = 0.2
@@ -113,6 +133,8 @@ namespace reco{
   private:
 
     float ecalClusterIsoR1_, ecalClusterIsoR2_, ecalClusterIsoR3_, ecalClusterIsoR4_, ecalClusterIsoR5_;
+float ecalClusterIsoR1_flow_, ecalClusterIsoR2_flow_, ecalClusterIsoR3_flow_, ecalClusterIsoR4_flow_, ecalClusterIsoR5_flow_;
+
     float hcalRechitIsoR1_, hcalRechitIsoR2_, hcalRechitIsoR3_, hcalRechitIsoR4_, hcalRechitIsoR5_;
     float trackIsoR1PtCut20_, trackIsoR2PtCut20_, trackIsoR3PtCut20_, trackIsoR4PtCut20_, trackIsoR5PtCut20_;
 
