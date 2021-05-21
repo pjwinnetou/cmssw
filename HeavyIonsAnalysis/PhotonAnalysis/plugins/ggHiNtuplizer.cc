@@ -406,6 +406,7 @@ ggHiNtuplizer::ggHiNtuplizer(const edm::ParameterSet& ps) :
     /* tree_->Branch("phoBC2Eta",             &phoBC2Eta_); */
     /* tree_->Branch("phoBC2Phi",             &phoBC2Phi_); */
 
+    tree_->Branch("rhoFlowFitParams", &rhoFlowFitParams_);
     tree_->Branch("pho_ecalClusterIsoR2", &pho_ecalClusterIsoR2_);
     tree_->Branch("pho_ecalClusterIsoR3", &pho_ecalClusterIsoR3_);
     tree_->Branch("pho_ecalClusterIsoR4", &pho_ecalClusterIsoR4_);
@@ -884,6 +885,7 @@ void ggHiNtuplizer::analyze(const edm::Event& e, const edm::EventSetup& es)
     /* phoBC2E_              .clear(); */
     /* phoBC2Eta_            .clear(); */
     /* phoBC2Phi_            .clear(); */
+    rhoFlowFitParams_.clear();
     pho_ecalClusterIsoR2_.clear();
     pho_ecalClusterIsoR3_.clear();
     pho_ecalClusterIsoR4_.clear();
@@ -1061,6 +1063,7 @@ void ggHiNtuplizer::analyze(const edm::Event& e, const edm::EventSetup& es)
   isData_ = e.isRealData();
 
   e.getByToken(rhoFlowFitParamsToken_, rhoFlowFitParams);
+  rhoFlowFitParams_ = *rhoFlowFitParams;
   rho_ = -1;
   edm::Handle<double> rhoH;
   if (doEffectiveAreas_) {

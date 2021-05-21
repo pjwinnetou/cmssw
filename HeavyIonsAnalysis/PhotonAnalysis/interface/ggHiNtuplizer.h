@@ -70,6 +70,7 @@ class ggHiNtuplizer : public edm::EDAnalyzer {
    bool doSuperClusters_;
 
    edm::Handle<std::vector<double>> rhoFlowFitParams;
+   std::vector<double> rhoFlowFitParams_;
    edm::EDGetTokenT<std::vector<double>>                  rhoFlowFitParamsToken_;
    // handles to collections of objects
    edm::EDGetTokenT<std::vector<PileupSummaryInfo> >    genPileupCollection_;
